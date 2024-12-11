@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>BMI Calculator NZ</title>
+    <!-- Responsive Meta Tag -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Minified CSS with Adjustments -->
+    <style>
+/* Reset and Box Sizing */
+#bmi-calculator * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Calculator Container */
+#bmi-calculator {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+    padding: 20px;
+    overflow-x: hidden; /* Prevent horizontal overflow */
+    min-height: 100vh; /* Ensure full viewport height */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Main Container Styling */
+#bmi-calculator .container {
+    max-width: 500px;
+    width: 100%; /* Ensure full width */
+    margin: 0 auto;
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column; /* Maintain column layout */
+    gap: 20px;
+}
+ #bmi-calculator .container a {
+  float: right;
+}
+
+/* Form and Chart Section */
+#bmi-calculator .form-section,
+#bmi-calculator .result-section {
+    width: 100%;
+}
+
+/* Initially hide the result section */
+#bmi-calculator .result-section {
+    display: none;
+}
+
+/* Form Styling */
+#bmi-calculator form {
+    width: 100%;
+}
+
+/* Chart Styling */
+#bmi-calculator .chart-container {
+    width: 100%;
+}
+
+#bmi-calculator canvas {
+    display: block;
+    max-width: 100%;
+    height: auto; /* Maintain aspect ratio */
+}
+
+/* Labels */
+#bmi-calculator label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+/* Inputs and Selects */
+#bmi-calculator input[name],
+#bmi-calculator select[name] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    margin-bottom: 10px;
+    min-width: 150px;
+    max-width: 100%;
+}
+
+/* Input Groups with Units */
+#bmi-calculator .input-with-unit {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap; /* Allows items to wrap on smaller screens */
+}
+
+#bmi-calculator .input-with-unit input[name] {
+    flex-grow: 1;
+    min-width: 100px; /* Minimum width to prevent shrinking too much */
+}
+
+#bmi-calculator .input-with-unit select[name] {
+    width: 80px; /* Fixed width to prevent overflow */
+    flex-shrink: 0; /* Prevents shrinking */
+    margin-top: 10px; /* Adds space when wrapped */
+}
+
+/* Submit and Back Buttons */
+#bmi-calculator button {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    min-width: 150px;
+    max-width: 100%;
+    background-color: #007BFF;
+    color: #fff;
+    transition: background-color 0.3s ease;
+}
+
+#bmi-calculator button:hover {
+    background-color: #0056b3;
+}
+
+/* Back Button Styling */
+#bmi-calculator .back-button {
+    background-color: #6c757d;
+}
+
+#bmi-calculator .back-button:hover {
+    background-color: #5a6268;
+}
+
+/* Result Section */
+#bmi-calculator .result {
+    text-align: center;
+    margin-top: 20px;
+}
+
+#bmi-calculator .result p {
+    margin-bottom: 10px;
+    font-size: 18px;
+}
+
+/* Shake Animation for Invalid Inputs */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25%, 75% { transform: translateX(-5px); }
+    50% { transform: translateX(5px); }
+}
+
+.shake {
+    animation: shake 0.5s;
+    border: 1px solid red;
+}
+
+/* Responsive Layout for Larger Screens */
+/* Removed or modified to maintain column layout */
+@media (min-width: 768px) {
+    /* Ensure the container remains columnar */
+    #bmi-calculator .container {
+        flex-direction: column; /* Keep column direction */
+        align-items: stretch; /* Ensure items stretch to full width */
+    }
+
+    #bmi-calculator .form-and-chart {
+        gap: 20px; /* Adjust gap as needed */
+    }
+
+    /* Remove any specific styles that set widths or margins for row layout */
+    #bmi-calculator .chart-container {
+        max-width: 100%;
+        margin: 0;
+    }
+
+    #bmi-calculator .result {
+        margin-top: 20px; /* Ensure spacing */
+        margin-left: 0; /* Remove left margin */
+    }
+
+    /* Adjust unit dropdowns if necessary */
+    #bmi-calculator .input-with-unit select[name] {
+        margin-top: 10px; /* Maintain spacing when wrapped */
+    }
+
+}
+    </style>
+</head>
+<body>
+    <div id="bmi-calculator">
+        <div class="container">
+            <p>For Adults<a href="https://www.bmicalc.nz/bmi-calculator-nz-child">For Children</a></p>
+            <!-- Form Section -->
+            <div class="form-section">
+                <form id="bmiForm">
+                    <!-- Gender Dropdown -->
+                    <div class="input-group">
+                        <label for="gender">Gender</label>
+                        <select id="gender" name="gender" required>
+                            <option value="" disabled selected>Select Gender</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                        </select>
+                    </div>
+
+                    <!-- Age Input -->
+                    <div class="input-group-age">
+                        <label for="age">Age</label>
+                        <input type="number" id="age" name="age" min="2" max="120" placeholder="Enter your age" required>
+                    </div>
+
+                    <!-- Height Input with Units -->
+                    <div class="input-group">
+                        <label for="height">Height</label>
+                        <div class="input-with-unit">
+                            <input type="number" id="height" name="height" min="30" max="300" step="any" placeholder="Enter your height" required>
+                            <select id="heightUnit" name="heightUnit">
+                                <option value="cm" selected>cm</option>
+                                <option value="in">inches</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Weight Input with Units -->
+                    <div class="input-group">
+                        <label for="weight">Weight</label>
+                        <div class="input-with-unit">
+                            <input type="number" id="weight" name="weight" min="2" max="500" step="any" placeholder="Enter your weight" required>
+                            <select id="weightUnit" name="weightUnit">
+                                <option value="kg" selected>kg</option>
+                                <option value="lb">lbs</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit">Calculate BMI</button>
+                </form>
+            </div>
+
+            <!-- Result Section -->
+            <div class="result-section">
+                <div class="chart-container">
+                    <canvas id="bmiChart" width="300" height="300"></canvas>
+                </div>
+                <div class="result">
+                    <p id="bmiResult"></p>
+                    <p class="bmi-status"></p>
+                    <button class="back-button">Back to Form</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Minified JavaScript with Adjustments -->
+    <script>
+document.addEventListener('DOMContentLoaded', function(){
+    const form = document.getElementById('bmiForm'),
+          heightInput = document.getElementById('height'),
+          weightInput = document.getElementById('weight'),
+          ageInput = document.getElementById('age'),
+          genderInput = document.getElementById('gender'),
+          bmiResult = document.getElementById('bmiResult'),
+          bmiStatusLabel = document.querySelector('.bmi-status'),
+          heightUnit = document.getElementById('heightUnit'),
+          weightUnit = document.getElementById('weightUnit'),
+          ctx = document.getElementById('bmiChart').getContext('2d'),
+          resultSection = document.querySelector('.result-section'),
+          formSection = document.querySelector('.form-section'),
+          backButton = document.querySelector('.back-button');
+
+    // Initialize the chart with standard BMI categories
+    const bmiChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Underweight', 'Normal weight', 'Overweight', 'Obese'],
+            datasets: [{
+                label: 'BMI Range',
+                data: [18.5, 24.9, 29.9, 40],
+                backgroundColor: ['rgba(0,0,255,0.6)', 'rgba(0,255,0,0.6)', 'rgba(255,165,0,0.6)', 'rgba(255,0,0,0.6)'],
+                borderColor: ['rgba(0,0,255,1)', 'rgba(0,255,0,1)', 'rgba(255,165,0,1)', 'rgba(255,0,0,1)'],
+                borderWidth: 1
+            },{
+                label: 'Your BMI',
+                data: [null, null, null, null],
+                backgroundColor: 'rgba(75,192,192,0.6)',
+                borderColor: 'rgba(75,192,192,1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 50, // Initial max for adults
+                    ticks: { stepSize: 5 }
+                }
+            },
+            plugins: {
+                legend: { display: true }
+            }
+        }
+    });
+
+    form.addEventListener('submit', function(e){
+        e.preventDefault();
+        const height = parseFloat(heightInput.value),
+              weight = parseFloat(weightInput.value),
+              age = parseFloat(ageInput.value),
+              gender = genderInput.value,
+              unitHeight = heightUnit.value,
+              unitWeight = weightUnit.value;
+        let heightCm = height, weightKg = weight;
+
+        if(unitHeight === 'in'){ heightCm = height * 2.54; }
+        if(unitWeight === 'lb'){ weightKg = weight * 0.453592; }
+
+        if(!validateInputs(height, weight, age, gender, unitHeight, unitWeight)){ return; }
+
+        let bmi = 0, category = '', color = '';
+        let isChild = false;
+
+        if(age >= 18){
+            bmi = weightKg / Math.pow(heightCm / 100, 2);
+            category = getBMICategoryAdult(bmi);
+            isChild = false;
+            color = getColorByBMICategory(category);
+            updateChart(
+                ['Underweight','Normal weight','Overweight','Obese'],
+                [18.5,24.9,29.9,40],
+                bmi,
+                category,
+                isChild
+            );
+        } else {
+            bmi = calculateBMIForChildren(heightCm, weightKg, age, gender);
+            category = getBMICategoryChild(bmi);
+            isChild = true;
+            color = getColorByBMICategory(category);
+            updateChart(
+                ['<5th Percentile','5th-85th Percentile','85th-95th Percentile','>95th Percentile'],
+                [5,85,95,100],
+                bmi,
+                category,
+                isChild
+            );
+        }
+
+        bmiResult.textContent = `Your BMI is ${bmi.toFixed(2)}${age < 18 && bmi > 40 ? '+' : ''}`;
+        bmiStatusLabel.textContent = `BMI Category: ${category}`;
+        bmiStatusLabel.style.color = color;
+
+        // Hide the form and show the result section
+        formSection.style.display = 'none';
+        resultSection.style.display = 'block';
+    });
+
+    backButton.addEventListener('click', function(){
+        // Show the form and hide the result section
+        resultSection.style.display = 'none';
+        formSection.style.display = 'block';
+    });
+
+    function calculateBMIForChildren(heightCm, weightKg, age, gender){
+        // Simplified BMI percentile logic for demonstration
+        // In production, integrate with actual BMI percentile data
+        const bmi = weightKg / Math.pow(heightCm / 100, 2);
+        return bmi;
+    }
+
+    function getBMICategoryAdult(bmi){
+        if(bmi < 18.5){ return 'Underweight'; }
+        else if(bmi < 24.9){ return 'Normal weight'; }
+        else if(bmi < 29.9){ return 'Overweight'; }
+        else{ return 'Obese'; }
+    }
+
+    function getBMICategoryChild(bmi){
+        if(bmi < 5){ return 'Underweight'; }
+        else if(bmi < 85){ return 'Healthy weight'; }
+        else if(bmi < 95){ return 'Overweight'; }
+        else{ return 'Obese'; }
+    }
+
+    function getColorByBMICategory(category){
+        switch(category){
+            case 'Underweight': return 'blue';
+            case 'Normal weight':
+            case 'Healthy weight': return 'green';
+            case 'Overweight': return 'orange';
+            case 'Obese': return 'red';
+            default: return 'black';
+        }
+    }
+
+    function updateChart(labels, percentiles, bmi, category, isChild){
+        bmiChart.data.labels = labels;
+        bmiChart.data.datasets[0].data = percentiles;
+        bmiChart.data.datasets[1].data = [null, null, null, null];
+
+        switch(category){
+            case 'Underweight':
+                bmiChart.data.datasets[1].data[0] = bmi;
+                break;
+            case 'Normal weight':
+            case 'Healthy weight':
+                bmiChart.data.datasets[1].data[1] = bmi;
+                break;
+            case 'Overweight':
+                bmiChart.data.datasets[1].data[2] = bmi;
+                break;
+            case 'Obese':
+                bmiChart.data.datasets[1].data[3] = bmi;
+                break;
+        }
+
+        // Dynamically set y-axis max based on BMI type
+        bmiChart.options.scales.y.max = isChild ? 100 : 50;
+
+        bmiChart.update();
+    }
+
+    function validateInputs(height, weight, age, gender, unitHeight, unitWeight){
+        let valid = true;
+        // Define validation ranges based on units
+        let heightMin, heightMax, weightMin, weightMax;
+        if(unitHeight === 'cm'){ heightMin = 30; heightMax = 300; }
+        else if(unitHeight === 'in'){ heightMin = 12; heightMax = 118; }
+        if(unitWeight === 'kg'){ weightMin = 2; weightMax = 500; }
+        else if(unitWeight === 'lb'){ weightMin = 5; weightMax = 1102; }
+        // Validate Gender
+        if(!gender){
+            shakeInput(genderInput); valid = false;
+        }
+        // Validate Age
+        if(!age || age < 2 || age > 120){
+            shakeInput(ageInput); valid = false;
+        }
+        // Validate Height
+        if(!height || height < heightMin || height > heightMax){
+            shakeInput(heightInput); valid = false;
+        }
+        // Validate Weight
+        if(!weight || weight < weightMin || weight > weightMax){
+            shakeInput(weightInput); valid = false;
+        }
+        return valid;
+    }
+
+    function shakeInput(input){
+        input.classList.add('shake');
+        setTimeout(()=>{ input.classList.remove('shake') }, 500);
+    }
+});
+    </script>
+</body>
+</html>

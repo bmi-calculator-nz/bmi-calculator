@@ -1,4 +1,4 @@
-# [BMI Calculator NZ](bmicalc.nz)
+# [BMI Calculator NZ](bmicalc.nz) - Visit NOW
 
 A simple, responsive Body Mass Index (BMI) Calculator for New Zealand. This tool allows users to calculate their BMI based on their height, weight, age, and gender. It also includes a dynamic chart to visualize BMI categories and results. The calculator supports both metric and imperial units (cm, kg, inches, lbs).
 
